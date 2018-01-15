@@ -1,14 +1,18 @@
-import { HKT } from 'fp-ts/lib/HKT'
-import { Monad } from 'fp-ts/lib/Monad'
-import { URI, Either, left, either } from 'fp-ts/lib/Either'
+import { Either } from 'fp-ts/lib/Either'
+import * as either from 'fp-ts/lib/Either'
 import { MonadError } from './index'
+import { Monad2 } from 'fp-ts/lib/Monad'
 
-export const getEitherMonadError = <E>(): MonadError<E, URI> => {
+export const getEitherMonadError = <E>(): MonadError<either.URI, E> & Monad2<either.URI, E> => {
   return {
-    ...(either as Monad<URI>),
-    throwError: e => left(e),
-    catchError: <A>(ma: HKT<URI, A>, f: (e: E) => HKT<URI, A>) => {
-      return (ma as Either<E, A>).fold(f, () => ma)
+    URI: either.URI,
+    map: either.map,
+    of: either.of,
+    ap: either.ap,
+    chain: either.chain,
+    throwError: e => either.left(e),
+    catchError: <A>(ma: Either<E, A>, f: (e: E) => Either<E, A>) => {
+      return ma.fold(f, () => ma)
     }
   }
 }

@@ -1,12 +1,16 @@
-import { HKT } from 'fp-ts/lib/HKT'
-import { Monad } from 'fp-ts/lib/Monad'
-import { URI, Option, none, option } from 'fp-ts/lib/Option'
+import { Option } from 'fp-ts/lib/Option'
+import * as option from 'fp-ts/lib/Option'
 import { MonadError } from './index'
+import { Monad2 } from 'fp-ts/lib/Monad'
 
-export const monadErrorOption: MonadError<void, URI> = {
-  ...(option as Monad<URI>),
-  throwError: () => none,
-  catchError: <A>(ma: HKT<URI, A>, f: (e: void) => HKT<URI, A>) => {
-    return (ma as Option<A>).fold(() => f(undefined), () => ma)
+export const monadErrorOption: MonadError<option.URI, void> & Monad2<option.URI, void> = {
+  URI: option.URI,
+  map: option.map,
+  of: option.of,
+  ap: option.ap,
+  chain: option.chain,
+  throwError: (e: void) => option.none,
+  catchError: <A>(ma: Option<A>, f: (e: void) => Option<A>) => {
+    return ma.fold(() => f(undefined), () => ma)
   }
-}
+} as any
