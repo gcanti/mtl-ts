@@ -1,9 +1,5 @@
 import { HKT2, HKT3, HKT2S, HKT2As, HKT3S, HKT3As } from 'fp-ts/lib/HKT'
-
-export interface Functor2<M, L> {
-  readonly URI: M
-  map<A, B>(f: (a: A) => B, fa: HKT2<M, L, A>): HKT2<M, L, B>
-}
+import { Functor2 } from 'fp-ts/lib/Functor'
 
 export interface MonadReader<M, E> {
   ask(): HKT2<M, E, E>
