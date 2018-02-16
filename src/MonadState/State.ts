@@ -1,7 +1,17 @@
-import * as state from 'fp-ts/lib/State'
+import { URI, state, get, put } from 'fp-ts/lib/State'
 import { MonadState } from './index'
-import { Monad2 } from 'fp-ts/lib/Monad'
+import { Monad2C } from 'fp-ts/lib/Monad'
+import { phantom } from 'fp-ts/lib/function'
 
-export const getStateMonadState = <E>(): MonadState<state.URI, E> & Monad2<state.URI, E> => {
-  return state
+export const getMonadState = <S = never>(): MonadState<URI, S> & Monad2C<URI, S> => {
+  return {
+    URI: state.URI,
+    _L: phantom,
+    map: state.map,
+    of: state.of,
+    ap: state.ap,
+    chain: state.chain,
+    get,
+    put
+  }
 }

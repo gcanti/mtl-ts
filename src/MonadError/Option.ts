@@ -1,16 +1,15 @@
-import { Option } from 'fp-ts/lib/Option'
-import * as option from 'fp-ts/lib/Option'
-import { MonadError } from './index'
-import { Monad2 } from 'fp-ts/lib/Monad'
+import { URI, option, none } from 'fp-ts/lib/Option'
+import { MonadError1 } from './index'
+import { Monad1 } from 'fp-ts/lib/Monad'
 
-export const monadErrorOption: MonadError<option.URI, void> & Monad2<option.URI, void> = {
-  URI: option.URI,
-  map: option.map,
-  of: option.of,
-  ap: option.ap,
-  chain: option.chain,
-  throwError: (e: void) => option.none,
-  catchError: <A>(ma: Option<A>, f: (e: void) => Option<A>) => {
-    return ma.fold(() => f(undefined), () => ma)
+export const getMonadError = <E>(e: E): MonadError1<URI, E> & Monad1<URI> => {
+  return {
+    URI,
+    map: option.map,
+    of: option.of,
+    ap: option.ap,
+    chain: option.chain,
+    throwError: () => none,
+    catchError: (ma, f) => ma.foldL(() => f(e), () => ma)
   }
-} as any
+}

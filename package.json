@@ -1,17 +1,17 @@
 {
   "name": "mtl-ts",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "MTL-style in TypeScript",
-  "files": ["lib"],
+  "files": [
+    "lib"
+  ],
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "scripts": {
     "lint": "tslint src/**/*.ts test/**/*.ts",
-    "mocha": "mocha -r ts-node/register test/*.ts",
-    "prettier":
-      "prettier --no-semi --single-quote --print-width 120 --parser typescript --list-different \"{src,test}/**/*.ts\"",
-    "fix-prettier":
-      "prettier --no-semi --single-quote --print-width 120 --parser typescript --write \"{src,test}/**/*.ts\"",
+    "mocha": "TS_NODE_CACHE=false mocha -r ts-node/register test/*.ts",
+    "prettier": "prettier --no-semi --single-quote --print-width 120 --parser typescript --list-different \"{src,test}/**/*.ts\"",
+    "fix-prettier": "prettier --no-semi --single-quote --print-width 120 --parser typescript --write \"{src,test}/**/*.ts\"",
     "test": "npm run prettier && npm run lint && npm run mocha",
     "clean": "rm -rf lib/*",
     "build": "npm run clean && tsc"
@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/gcanti/mtl-ts",
   "dependencies": {
-    "fp-ts": "^0.6.8"
+    "fp-ts": "^1.0.1"
   },
   "devDependencies": {
     "@types/mocha": "2.2.38",
@@ -39,6 +39,16 @@
     "tslint-config-standard": "4.0.0",
     "typescript": "2.6.2"
   },
-  "tags": ["fp-ts", "functional-programming", "finally tagless", "MTL style"],
-  "keywords": ["fp-ts", "functional-programming", "finally tagless", "MTL style"]
+  "tags": [
+    "fp-ts",
+    "functional-programming",
+    "finally tagless",
+    "MTL style"
+  ],
+  "keywords": [
+    "fp-ts",
+    "functional-programming",
+    "finally tagless",
+    "MTL style"
+  ]
 }
