@@ -1,8 +1,8 @@
-import { HKT2S, HKT2As, HKT3S, HKT3As, HKT2, HKT3, HKTS, HKTAs } from 'fp-ts/lib/HKT'
+import { HKT, URIS, URIS2, Type, Type2 } from 'fp-ts/lib/HKT'
 import { Option } from 'fp-ts/lib/Option'
 import { Either, left, right } from 'fp-ts/lib/Either'
-import { Applicative2 } from 'fp-ts/lib/Applicative'
-import { Monad2 } from 'fp-ts/lib/Monad'
+import { Applicative, Applicative1, Applicative2, Applicative2C } from 'fp-ts/lib/Applicative'
+import { Monad, Monad1, Monad2, Monad2C } from 'fp-ts/lib/Monad'
 
 /**
  * The `MonadThrow` type class represents those monads which support errors via
@@ -16,11 +16,18 @@ import { Monad2 } from 'fp-ts/lib/Monad'
  * @typeclass
  */
 export interface MonadThrow<M, E> {
-  throwError<A>(e: E): HKT2<M, E, A>
+  readonly URI: M
+  throwError: <A>(e: E) => HKT<M, A>
 }
 
-export interface MonadThrow3<M, U, E> {
-  throwError<A>(e: E): HKT3<M, U, E, A>
+export interface MonadThrow1<M extends URIS, E> {
+  readonly URI: M
+  throwError: <A>(e: E) => Type<M, A>
+}
+
+export interface MonadThrow2<M extends URIS2, E> {
+  readonly URI: M
+  throwError: <A>(e: E) => Type2<M, E, A>
 }
 
 /**
@@ -39,11 +46,15 @@ export interface MonadThrow3<M, U, E> {
  * @typeclass
  */
 export interface MonadError<M, E> extends MonadThrow<M, E> {
-  catchError<A>(ma: HKT2<M, E, A>, f: (e: E) => HKT2<M, E, A>): HKT2<M, E, A>
+  catchError: <A>(ma: HKT<M, A>, f: (e: E) => HKT<M, A>) => HKT<M, A>
 }
 
-export interface MonadError3<M, U, E> extends MonadThrow3<M, U, E> {
-  catchError<A>(ma: HKT3<M, U, E, A>, f: (e: E) => HKT3<M, U, E, A>): HKT3<M, U, E, A>
+export interface MonadError1<M extends URIS, E> extends MonadThrow1<M, E> {
+  catchError: <A>(ma: Type<M, A>, f: (e: E) => Type<M, A>) => Type<M, A>
+}
+
+export interface MonadError2<M extends URIS2, E> extends MonadThrow2<M, E> {
+  catchError: <A>(ma: Type2<M, E, A>, f: (e: E) => Type2<M, E, A>) => Type2<M, E, A>
 }
 
 /**
@@ -52,45 +63,34 @@ export interface MonadError3<M, U, E> extends MonadThrow3<M, U, E> {
  * If the inner computation throws an exception, and the predicate returns
  * Nothing, then the whole computation will still fail with that exception.
  */
-export function catchJust<M extends HKT3S, E>(
-  M: MonadError<M, E>
-): <B>(
-  predicate: (e: E) => Option<B>
-) => <U, A>(ma: HKT3As<M, U, E, A>, handler: (b: B) => HKT3As<M, U, E, A>) => HKT3As<M, U, E, A>
-export function catchJust<M extends HKT2S, E>(
-  M: MonadError<M, E>
-): <B>(
-  predicate: (e: E) => Option<B>
-) => <A>(ma: HKT2As<M, E, A>, handler: (b: B) => HKT2As<M, E, A>) => HKT2As<M, E, A>
-export function catchJust<M extends HKTS, E>(
-  M: MonadError<M, E>
-): <B>(predicate: (e: E) => Option<B>) => <A>(ma: HKTAs<M, A>, handler: (b: B) => HKTAs<M, A>) => HKTAs<M, A>
+export function catchJust<M extends URIS2, E>(
+  M: MonadError2<M, E>
+): <B>(predicate: (e: E) => Option<B>) => <A>(ma: Type2<M, E, A>, handler: (b: B) => Type2<M, E, A>) => Type2<M, E, A>
+export function catchJust<M extends URIS, E>(
+  M: MonadError1<M, E>
+): <B>(predicate: (e: E) => Option<B>) => <A>(ma: Type<M, A>, handler: (b: B) => Type<M, A>) => Type<M, A>
 export function catchJust<M, E>(
   M: MonadError<M, E>
-): <B>(predicate: (e: E) => Option<B>) => <A>(ma: HKT2<M, E, A>, handler: (b: B) => HKT2<M, E, A>) => HKT2<M, E, A>
+): <B>(predicate: (e: E) => Option<B>) => <A>(ma: HKT<M, A>, handler: (b: B) => HKT<M, A>) => HKT<M, A>
 export function catchJust<M, E>(
   M: MonadError<M, E>
-): <B>(predicate: (e: E) => Option<B>) => <A>(ma: HKT2<M, E, A>, handler: (b: B) => HKT2<M, E, A>) => HKT2<M, E, A> {
-  return predicate => (ma, handler) => M.catchError(ma, e => predicate(e).fold(() => M.throwError(e), b => handler(b)))
+): <B>(predicate: (e: E) => Option<B>) => <A>(ma: HKT<M, A>, handler: (b: B) => HKT<M, A>) => HKT<M, A> {
+  return predicate => (ma, handler) => M.catchError(ma, e => predicate(e).foldL(() => M.throwError(e), handler))
 }
 
 /** Return `Right` if the given action succeeds, `Left` if it throws */
-export function tryCatch<M extends HKT3S, E>(
-  M: MonadError<M, E> & Applicative2<M, E>
-): <U, A>(ma: HKT3As<M, U, E, A>) => HKT3As<M, U, E, Either<E, A>>
-export function tryCatch<M extends HKT2S, E>(
-  M: MonadError<M, E> & Applicative2<M, E>
-): <A>(ma: HKT2As<M, E, A>) => HKT2As<M, E, Either<E, A>>
-export function tryCatch<M extends HKTS, E>(
-  M: MonadError<M, E> & Applicative2<M, E>
-): <A>(ma: HKTAs<M, A>) => HKTAs<M, Either<E, A>>
-export function tryCatch<M, E>(
-  M: MonadError<M, E> & Applicative2<M, E>
-): <A>(ma: HKT2<M, E, A>) => HKT2<M, E, Either<E, A>>
-export function tryCatch<M, E>(
-  M: MonadError<M, E> & Applicative2<M, E>
-): <A>(ma: HKT2<M, E, A>) => HKT2<M, E, Either<E, A>> {
-  return ma => M.catchError(M.map(a => right(a), ma), e => M.of(left(e)))
+export function tryCatch<M extends URIS2, E>(
+  M: MonadError2<M, E> & Applicative2<M>
+): <A>(ma: Type2<M, E, A>) => Type2<M, E, Either<E, A>>
+export function tryCatch<M extends URIS2, E>(
+  M: MonadError2<M, E> & Applicative2C<M, E>
+): <A>(ma: Type2<M, E, A>) => Type2<M, E, Either<E, A>>
+export function tryCatch<M extends URIS, E>(
+  M: MonadError1<M, E> & Applicative1<M>
+): <A>(ma: Type<M, A>) => Type<M, Either<E, A>>
+export function tryCatch<M, E>(M: MonadError<M, E> & Applicative<M>): <A>(ma: HKT<M, A>) => HKT<M, Either<E, A>>
+export function tryCatch<M, E>(M: MonadError<M, E> & Applicative<M>): <A>(ma: HKT<M, A>) => HKT<M, Either<E, A>> {
+  return ma => M.catchError(M.map(ma, a => right(a)), e => M.of(left(e)))
 }
 
 /**
@@ -98,41 +98,32 @@ export function tryCatch<M, E>(
  * release action is called regardless of whether the body action throws or
  * returns.
  */
-export function withResource<M extends HKT3S, E>(
-  M: MonadError<M, E> & Monad2<M, E>
-): <U, R, A>(
-  acquire: HKT3As<M, U, E, R>,
-  release: (r: R) => HKT3As<M, U, E, void>,
-  program: (r: R) => HKT3As<M, U, E, A>
-) => HKT3As<M, U, E, A>
-export function withResource<M extends HKT2S, E>(
-  M: MonadError<M, E> & Monad2<M, E>
+export function withResource<M extends URIS2, E>(
+  M: MonadError2<M, E> & Monad2<M>
 ): <R, A>(
-  acquire: HKT2As<M, E, R>,
-  release: (r: R) => HKT2As<M, E, void>,
-  program: (r: R) => HKT2As<M, E, A>
-) => HKT2As<M, E, A>
-export function withResource<M extends HKTS, E>(
-  M: MonadError<M, E> & Monad2<M, E>
-): <R, A>(acquire: HKTAs<M, R>, release: (r: R) => HKTAs<M, void>, program: (r: R) => HKTAs<M, A>) => HKTAs<M, A>
+  acquire: Type2<M, E, R>,
+  release: (r: R) => Type2<M, E, void>,
+  program: (r: R) => Type2<M, E, A>
+) => Type2<M, E, A>
+export function withResource<M extends URIS2, E>(
+  M: MonadError2<M, E> & Monad2C<M, E>
+): <R, A>(
+  acquire: Type2<M, E, R>,
+  release: (r: R) => Type2<M, E, void>,
+  program: (r: R) => Type2<M, E, A>
+) => Type2<M, E, A>
+export function withResource<M extends URIS, E>(
+  M: MonadError1<M, E> & Monad1<M>
+): <R, A>(acquire: Type<M, R>, release: (r: R) => Type<M, void>, program: (r: R) => Type<M, A>) => Type<M, A>
 export function withResource<M, E>(
-  M: MonadError<M, E> & Monad2<M, E>
-): <R, A>(
-  acquire: HKT2<M, E, R>,
-  release: (r: R) => HKT2<M, E, void>,
-  program: (r: R) => HKT2<M, E, A>
-) => HKT2<M, E, A>
+  M: MonadError<M, E> & Monad<M>
+): <R, A>(acquire: HKT<M, R>, release: (r: R) => HKT<M, void>, program: (r: R) => HKT<M, A>) => HKT<M, A>
 export function withResource<M, E>(
-  M: MonadError<M, E> & Monad2<M, E>
-): <R, A>(
-  acquire: HKT2<M, E, R>,
-  release: (r: R) => HKT2<M, E, void>,
-  program: (r: R) => HKT2<M, E, A>
-) => HKT2<M, E, A> {
+  M: MonadError<M, E> & Monad<M>
+): <R, A>(acquire: HKT<M, R>, release: (r: R) => HKT<M, void>, program: (r: R) => HKT<M, A>) => HKT<M, A> {
   const tryCatchM = tryCatch(M)
   return (acquire, release, program) =>
-    M.chain(
-      r => M.chain(result => M.chain(() => result.fold(e => M.throwError(e), M.of), release(r)), tryCatchM(program(r))),
-      acquire
+    M.chain(acquire, r =>
+      M.chain(tryCatchM(program(r)), result => M.chain(release(r), () => result.fold(e => M.throwError(e), M.of)))
     )
 }

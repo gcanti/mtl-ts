@@ -1,30 +1,33 @@
-import { HKT2, HKT3, HKT2S, HKT2As, HKT3S, HKT3As } from 'fp-ts/lib/HKT'
-import { Functor2 } from 'fp-ts/lib/Functor'
+import { HKT, URIS, URIS2, Type, Type2 } from 'fp-ts/lib/HKT'
+import { Functor, Functor1, Functor2, Functor2C } from 'fp-ts/lib/Functor'
 
 export interface MonadReader<M, E> {
-  ask(): HKT2<M, E, E>
+  readonly URI: M
+  ask: () => HKT<M, E>
 }
 
-export interface MonadReader3<M, E> {
-  ask<U, L>(): HKT3<M, U, L, E>
+export interface MonadReader1<M extends URIS, E> {
+  readonly URI: M
+  ask: () => Type<M, E>
 }
 
-export function asks<M extends HKT3S, E>(
-  M: MonadReader<M, E> & Functor2<M, E>
-): <U, A>(f: (e: E) => A) => HKT3As<M, U, E, A>
-export function asks<M extends HKT2S, E>(M: MonadReader<M, E> & Functor2<M, E>): <A>(f: (e: E) => A) => HKT2As<M, E, A>
-export function asks<M, E>(M: MonadReader<M, E> & Functor2<M, E>): <U, A>(f: (e: E) => A) => HKT3<M, U, E, A>
-export function asks<M, E>(M: MonadReader<M, E> & Functor2<M, E>): <A>(f: (e: E) => A) => HKT2<M, E, A>
-export function asks<M, E>(M: MonadReader<M, E> & Functor2<M, E>): <A>(f: (e: E) => A) => HKT2<M, E, A> {
-  return f => M.map(f, M.ask())
+export interface MonadReader2<M extends URIS2, E> {
+  readonly URI: M
+  ask: () => Type2<M, E, E>
 }
 
-export function local<M extends HKT3S, E>(
-  M: MonadReader<M, E> & Functor2<M, E>
-): <U>(f: (e: E) => E) => HKT3As<M, U, E, E>
-export function local<M extends HKT2S, E>(M: MonadReader<M, E> & Functor2<M, E>): (f: (e: E) => E) => HKT2As<M, E, E>
-export function local<M, E>(M: MonadReader<M, E> & Functor2<M, E>): <U>(f: (e: E) => E) => HKT3<M, U, E, E>
-export function local<M, E>(M: MonadReader<M, E> & Functor2<M, E>): (f: (e: E) => E) => HKT2<M, E, E>
-export function local<M, E>(M: MonadReader<M, E> & Functor2<M, E>): (f: (e: E) => E) => HKT2<M, E, E> {
+export function asks<M extends URIS2, E>(M: MonadReader2<M, E> & Functor2<M>): <A>(f: (e: E) => A) => Type2<M, E, A>
+export function asks<M extends URIS2, E>(M: MonadReader2<M, E> & Functor2C<M, E>): <A>(f: (e: E) => A) => Type2<M, E, A>
+export function asks<M extends URIS, E>(M: MonadReader1<M, E> & Functor1<M>): <A>(f: (e: E) => A) => Type<M, A>
+export function asks<M, E>(M: MonadReader<M, E> & Functor<M>): <A>(f: (e: E) => A) => HKT<M, A>
+export function asks<M, E>(M: MonadReader<M, E> & Functor<M>): <A>(f: (e: E) => A) => HKT<M, A> {
+  return f => M.map(M.ask(), f)
+}
+
+export function local<M extends URIS2, E>(M: MonadReader2<M, E> & Functor2<M>): (f: (e: E) => E) => Type2<M, E, E>
+export function local<M extends URIS2, E>(M: MonadReader2<M, E> & Functor2C<M, E>): (f: (e: E) => E) => Type2<M, E, E>
+export function local<M extends URIS, E>(M: MonadReader1<M, E> & Functor1<M>): (f: (e: E) => E) => Type<M, E>
+export function local<M, E>(M: MonadReader<M, E> & Functor<M>): (f: (e: E) => E) => HKT<M, E>
+export function local<M, E>(M: MonadReader<M, E> & Functor<M>): (f: (e: E) => E) => HKT<M, E> {
   return asks(M)
 }
